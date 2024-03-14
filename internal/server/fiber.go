@@ -13,6 +13,7 @@ import (
 	coreCategory "synapsis/internal/core/category"
 	coreCustomers "synapsis/internal/core/customers"
 	CoreProducts "synapsis/internal/core/products"
+	CoreShoppingCart "synapsis/internal/core/shopping_cart"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
@@ -63,6 +64,7 @@ func Run(conf *config.Config, dbList *db.DatabaseList, appLoger *logrus.Logger) 
 	coreCategory.NewRoutes(api, handler)
 	coreCustomers.NewRoutes(api, handler)
 	CoreProducts.NewRoutes(api, handler)
+	CoreShoppingCart.NewRoutes(api, handler)
 
 	//* CMS Routes
 	// cmsWorkOfType.NewRoutes(api, handler)

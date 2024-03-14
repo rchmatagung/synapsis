@@ -30,9 +30,9 @@ WORKDIR /root/
 
 COPY --from=builder /app/main .
 COPY --from=builder /app/config/config-dev.yaml ./config/config-dev.yaml
-COPY ./migrations ./migrations
+# COPY ./migrations ./migrations
 
-RUN apk add --no-cache postgresql-client
+# RUN apk add --no-cache postgresql-client
 
-# CMD ["./main"]
-CMD ["sh", "-c", "psql -h db -U postgres -d synapsis -a -f migrations/migrate.sql && ./main"]
+CMD ["./main"]
+# CMD ["sh", "-c", "psql -h db -U postgres -d synapsis -a -f migrations/migrate.sql && ./main"]

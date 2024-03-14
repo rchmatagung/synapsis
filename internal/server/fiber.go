@@ -10,6 +10,8 @@ import (
 	"synapsis/internal/wrapper/usecase"
 	"synapsis/pkg/infra/db"
 
+	coreCategory "synapsis/internal/core/category"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
 	"github.com/sirupsen/logrus"
@@ -50,12 +52,13 @@ func Run(conf *config.Config, dbList *db.DatabaseList, appLoger *logrus.Logger) 
 	app.Get("/", handler.General.Root.GetRoot)
 
 	//* Api Endpoint
-	// api := app.Group(conf.App.Endpoint)
+	api := app.Group(conf.App.Endpoint)
 
 	//* General Routes
 	//generalEncyrption.NewRoutes(api, handler)
 
 	//* Core Routes
+	coreCategory.NewRoutes(api, handler)
 
 	//* CMS Routes
 	// cmsWorkOfType.NewRoutes(api, handler)

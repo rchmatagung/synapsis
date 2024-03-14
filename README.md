@@ -111,7 +111,7 @@ The following endpoint uses customer_id but has been directly deployed using mid
 Clone the project
 
 ```bash
-  git clone https://link-to-project
+  git clone https://github.com/rchmatagung/synapsis.git
 ```
 
 Go to the project directory

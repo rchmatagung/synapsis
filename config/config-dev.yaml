@@ -22,7 +22,7 @@ Routes:
 Connection:
     DatabaseApp:
         DriverName: postgres
-        DriverSource: user=postgres password=postgres sslmode=disable dbname=synapsis host=db port=5432
+        DriverSource: user=postgres password=postgres sslmode=disable dbname=synapsis host=34.29.170.12 port=5432
         MaxOpenConns: 5
         MaxIdleConns: 5
         ConnMaxLifetime: 30

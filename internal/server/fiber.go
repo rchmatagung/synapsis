@@ -11,6 +11,7 @@ import (
 	"synapsis/pkg/infra/db"
 
 	coreCategory "synapsis/internal/core/category"
+	coreCustomers "synapsis/internal/core/customers"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
@@ -59,6 +60,7 @@ func Run(conf *config.Config, dbList *db.DatabaseList, appLoger *logrus.Logger) 
 
 	//* Core Routes
 	coreCategory.NewRoutes(api, handler)
+	coreCustomers.NewRoutes(api, handler)
 
 	//* CMS Routes
 	// cmsWorkOfType.NewRoutes(api, handler)

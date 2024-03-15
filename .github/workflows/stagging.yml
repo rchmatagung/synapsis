@@ -14,7 +14,7 @@ jobs:
         uses: actions/checkout@v2
       
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       
       - name: Build Docker image
         run: |
@@ -23,11 +23,11 @@ jobs:
           docker build --pull --cache-from gcr.io/cloudrun/placeholder:latest -t gcr.io/cloudrun/placeholder:latest .
           docker tag gcr.io/cloudrun/placeholder:latest gcr.io/cloudrun/placeholder:latest
       
-      - name: Log in to Docker
-        run: |
-          echo ${{ secrets.GCP_SA_KEY }} | base64 --decode > /tmp/gcp-key.json
-          gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
-          gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
       
       - name: Push Docker image
         run: |
@@ -39,7 +39,7 @@ jobs:
     needs: build
     steps:
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}

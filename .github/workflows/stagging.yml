@@ -1,46 +1,20 @@
-name: Build and Deploy to Cloud Run
-
+name: "running unit test, build docker image"
 on:
   push:
     branches:
-      - development
-
-env:
-  PROJECT_ID: synapsis-417214 # TODO: update Google Cloud project id
-  GAR_LOCATION: us-central1 # TODO: update Artifact Registry location
-  REPOSITORY: cloud-run-source-deploy # TODO: update Artifact Registry repository name
-  SERVICE: synapsis # TODO: update Cloud Run service name
-  REGION: us-central1 # TODO: update Cloud Run service region
-
+      - "development"
 jobs:
-  deploy:
+  build-push-docker:
+    name: "build image and push registry dockerhub"
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Docker Auth
-        id: docker-auth
-        uses: 'docker/login-action@v1'
+      - uses: actions/checkout@v2
+      - name: build image
+        run: docker build -t rchmatagung/synapsis -f Dockerfile .
+      - name: login dockerhub
+        uses: docker/login-action@v1
         with:
-          username: 'oauth2accesstoken'
-          password: '${{ secrets.GCP_AUTH_TOKEN }}'
-          registry: '${{ env.GAR_LOCATION }}-docker.pkg.dev'
-
-      - name: Build and Push Container
-        run: |-
-          docker build -t "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE }}:${{ github.sha }}" ./
-          docker push "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE }}:${{ github.sha }}"
-
-      - name: Deploy to Cloud Run
-        id: deploy
-        uses: google-github-actions/deploy-cloudrun@v0
-        with:
-          service: ${{ env.SERVICE }}
-          region: ${{ env.REGION }}
-          # NOTE: If using a pre-built image, update the image name here
-          image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE }}:${{ github.sha }}
-
-      # If required, use the Cloud Run url output in later steps
-      - name: Show Output
-        run: echo ${{ steps.deploy.outputs.url }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: push image to dockerhub
+        run: docker push rchmatagung/synapsis:latest

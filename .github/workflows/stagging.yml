@@ -29,14 +29,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       
-      - name: Log in to Google Container Registry
-        run: |
-          gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
-          
       - name: Push Docker image
         run: |
           docker push gcr.io/cloudrun/placeholder:latest
-
 
   deploy:
     name: Deploy to Cloud Run

@@ -16,9 +16,9 @@ jobs:
           docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
           docker push rchmatagung/synapsis:latest
       - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v1
         with:
-          credentials: ${{ secrets.GCP_SA_KEY }}
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
       - name: Set image tag for Cloud Run
         run: |
           docker tag rchmatagung/synapsis:latest gcr.io/cloudrun/placeholder
@@ -26,7 +26,7 @@ jobs:
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@main
         with:
-          service: my-service
+          service: synapsis
           image: gcr.io/cloudrun/placeholder
           platform: managed
           region: us-central1

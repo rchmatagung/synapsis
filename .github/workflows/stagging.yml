@@ -1,65 +1,46 @@
-name: Build and deploy to Cloud Run
+name: Build and Deploy to Cloud Run
 
 on:
   push:
     branches:
       - development
 
+env:
+  PROJECT_ID: synapsis-417214 # TODO: update Google Cloud project id
+  GAR_LOCATION: us-central1 # TODO: update Artifact Registry location
+  REPOSITORY: cloud-run-source-deploy # TODO: update Artifact Registry repository name
+  SERVICE: synapsis # TODO: update Cloud Run service name
+  REGION: us-central1 # TODO: update Cloud Run service region
+
 jobs:
-  build:
-    name: Build Docker image
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      
-      - name: Build Docker image
-        run: |
-          export DOCKER_BUILDKIT=1
-          docker pull gcr.io/cloudrun/placeholder:latest || true
-          docker build --pull --cache-from gcr.io/cloudrun/placeholder:latest -t gcr.io/cloudrun/placeholder:latest .
-          docker tag gcr.io/cloudrun/placeholder:latest gcr.io/cloudrun/placeholder:latest
-      
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      
-      - name: Push Docker image
-        run: |
-          docker push gcr.io/cloudrun/placeholder:latest
-
   deploy:
-    name: Deploy to Cloud Run
     runs-on: ubuntu-latest
-    needs: build
     steps:
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-      
-      - name: Deploy to Cloud Run
-        run: |
-          gcloud run deploy placeholder \
-            --image gcr.io/cloudrun/placeholder:latest \
-            --region=asia-southeast1 \
-            --platform managed \
-            --allow-unauthenticated \
-            --vpc-connector connector-cloudrun-sg
+      - name: Checkout
+        uses: actions/checkout@v2
 
-  clean:
-    name: Clean up Docker images
-    runs-on: ubuntu-latest
-    needs: deploy
-    steps:
-      - name: Remove dangling Docker images
-        run: docker rmi $(docker images -f dangling=true) || true
-      
-      - name: Remove built Docker image
-        run: docker rmi gcr.io/cloudrun/placeholder:latest
+      - name: Docker Auth
+        id: docker-auth
+        uses: 'docker/login-action@v1'
+        with:
+          username: 'oauth2accesstoken'
+          password: '${{ secrets.GCP_AUTH_TOKEN }}'
+          registry: '${{ env.GAR_LOCATION }}-docker.pkg.dev'
+
+      - name: Build and Push Container
+        run: |-
+          docker build -t "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE }}:${{ github.sha }}" ./
+          docker push "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE }}:${{ github.sha }}"
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v0
+        with:
+          service: ${{ env.SERVICE }}
+          region: ${{ env.REGION }}
+          # NOTE: If using a pre-built image, update the image name here
+          image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE }}:${{ github.sha }}
+
+      # If required, use the Cloud Run url output in later steps
+      - name: Show Output
+        run: echo ${{ steps.deploy.outputs.url }}

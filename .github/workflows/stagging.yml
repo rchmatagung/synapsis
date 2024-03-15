@@ -18,3 +18,15 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       - name: push image to dockerhub
         run: docker push rchmatagung/synapsis:latest
+      - name: Set image tag for Cloud Run
+        run: |
+          docker tag rchmatagung/synapsis:latest gcr.io/cloudrun/placeholder
+          docker push gcr.io/cloudrun/placeholder
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@main
+        with:
+          service: synapsis
+          image: gcr.io/cloudrun/placeholder
+          platform: managed
+          region: us-central1
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
